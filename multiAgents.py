@@ -15,6 +15,37 @@ def minimax(game_state: GameStatus, depth: int, maximizingPlayer: bool, alpha=fl
     
     THE LINE TO RETURN THESE TWO IS COMMENTED BELOW WHICH YOU CAN USE
     """
+	if maximizingPlayer:
+		value = float('-inf')
+		best_move = None
+		for move in game_state.get_moves():
+			new_state = game_state.get_new_state(move)
+			new_value, _ = minimax(new_state, depth - 1, False, alpha, beta)
+			if new_value > value:
+				value = new_value
+				best_move = move
+			alpha = max(alpha, value)
+			if beta <= alpha:
+				break
+		return value, best_move
+	else:
+		value = float('inf')
+		best_move = None
+		for move in game_state.get_moves():
+			new_state = game_state.get_new_state(move)
+			new_value, _ = minimax(new_state, depth - 1, True, alpha, beta)
+			if new_value < value:
+				value = new_value
+				best_move = move
+			beta = min(beta, value)
+			if beta <= alpha:
+				break
+		return value, best_move
+    
+
+		
+    
+	
 
 	# return value, best_move
 
@@ -36,4 +67,18 @@ def negamax(game_status: GameStatus, depth: int, turn_multiplier: int, alpha=flo
     THE LINE TO RETURN THESE TWO IS COMMENTED BELOW WHICH YOU CAN USE
     
     """
-    #return value, best_move
+	value = float('-inf')
+	best_move = None
+	for move in game_status.get_moves():
+		new_state = game_status.get_new_state(move)
+		new_value, _ = negamax(new_state, depth - 1, -turn_multiplier, -beta, -alpha)
+		new_value = -new_value
+		if new_value > value:
+			value = new_value
+			best_move = move
+		alpha = max(alpha, value)
+		if alpha >= beta:
+			break
+	return value, best_move
+	
+    
