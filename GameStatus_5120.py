@@ -14,10 +14,24 @@ class GameStatus:
 
 
 	def is_terminal(self):
+
+		if self.get_moves():
+			return False
+		
+		final_score = self.get_scores(terminal = True)
+		if final_score > 0:
+			self.winner = "Human"
+		elif final_score < 0:
+			self.winner = "AI"
+		else:
+			self.winner = "Draw"
+		return True
+	
 		"""
         YOUR CODE HERE TO CHECK IF ANY CELL IS EMPTY WITH THE VALUE 0. IF THERE IS NO EMPTY
         THEN YOU SHOULD ALSO RETURN THE WINNER OF THE GAME BY CHECKING THE SCORES FOR EACH PLAYER 
         """
+
 		
 
 	def get_scores(self, terminal):
@@ -51,10 +65,16 @@ class GameStatus:
 
 	def get_moves(self):
 		moves = []
+		rows, cols = self.board_state.shape
+		for i in range(rows):
+			for j in range(cols):
+				if self.board_state[i,j] == 0:
+					moves.append((i,j))
 		"""
         YOUR CODE HERE TO ADD ALL THE NON EMPTY CELLS TO MOVES VARIABLES AND RETURN IT TO BE USE BY YOUR
         MINIMAX OR NEGAMAX FUNCTIONS
         """
+		
 		return moves
 
 

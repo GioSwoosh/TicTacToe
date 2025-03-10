@@ -43,11 +43,6 @@ def minimax(game_state: GameStatus, depth: int, maximizingPlayer: bool, alpha=fl
 		return value, best_move
     
 
-		
-    
-	
-
-	# return value, best_move
 
 def negamax(game_status: GameStatus, depth: int, turn_multiplier: int, alpha=float('-inf'), beta=float('inf')):
 	terminal = game_status.is_terminal()
@@ -71,8 +66,7 @@ def negamax(game_status: GameStatus, depth: int, turn_multiplier: int, alpha=flo
 	best_move = None
 	for move in game_status.get_moves():
 		new_state = game_status.get_new_state(move)
-		new_value, _ = negamax(new_state, depth - 1, -turn_multiplier, -beta, -alpha)
-		new_value = -new_value
+		new_value, _ = -negamax(new_state, depth - 1, -turn_multiplier, -beta, -alpha)
 		if new_value > value:
 			value = new_value
 			best_move = move
