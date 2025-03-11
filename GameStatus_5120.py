@@ -27,10 +27,6 @@ class GameStatus:
 			self.winner = "Draw"
 		return True
 	
-		"""
-        YOUR CODE HERE TO CHECK IF ANY CELL IS EMPTY WITH THE VALUE 0. IF THERE IS NO EMPTY
-        THEN YOU SHOULD ALSO RETURN THE WINNER OF THE GAME BY CHECKING THE SCORES FOR EACH PLAYER 
-        """
 
 		
 
@@ -70,10 +66,7 @@ class GameStatus:
 			for j in range(cols):
 				if self.board_state[i,j] == 0:
 					moves.append((i,j))
-		"""
-        YOUR CODE HERE TO ADD ALL THE NON EMPTY CELLS TO MOVES VARIABLES AND RETURN IT TO BE USE BY YOUR
-        MINIMAX OR NEGAMAX FUNCTIONS
-        """
+		
 		
 		return moves
 
