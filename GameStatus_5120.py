@@ -30,24 +30,60 @@ class GameStatus:
 		
 
 	def get_scores(self, terminal):
-		"""
-        YOUR CODE HERE TO CALCULATE THE SCORES. MAKE SURE YOU ADD THE SCORE FOR EACH PLAYER BY CHECKING 
-        EACH TRIPLET IN THE BOARD IN EACH DIRECTION (HORIZONAL, VERTICAL, AND ANY DIAGONAL DIRECTION)
-        
-        YOU SHOULD THEN RETURN THE CALCULATED SCORE WHICH CAN BE POSITIVE (HUMAN PLAYER WINS),
-        NEGATIVE (AI PLAYER WINS), OR 0 (DRAW)
-        
-        """        
+
 		rows = len(self.board_state)
 		cols = len(self.board_state[0])
 		scores = 0
 		check_point = 3 if terminal else 2
+		#Search through rows
+		for i in range(rows):
+			#search through each coloumn in row
+			for j in range(cols):
+				#If we found a filled spot we need to check its surroundings for a filled spot. 
+				if self.board_state[i,j] != 0:
+					symbol_at_tile = self.board_state[i,j]
+					print(symbol_at_tile)
+					if (i + 2 < rows) and (self.board_state[i + 1, j] != 0) and (symbol_at_tile == self.board_state[i + 1, j]): #check x + 1 dir AND check if symbols match AND check if we can check that way
+						#run 2nd if only if we did find a 2 in a row.
+						if (self.board_state[i + 2, j] != 0) and (symbol_at_tile == self.board_state[i + 2, j]):
+							scores += symbol_at_tile
+						
+					elif (i-2 >= 0) and (self.board_state[i - 1, j] != 0) and (symbol_at_tile == self.board_state[i - 1, j]): #check x - 1 direction
+						if (self.board_state[i - 2, j] != 0) and (symbol_at_tile == self.board_state[i - 2, j]):
+							scores += symbol_at_tile
+
+					elif (j + 2 < cols) and (self.board_state[i, j + 1] != 0) and (symbol_at_tile == self.board_state[i, j + 1]): #check y + 1 direction
+						if (self.board_state[i, j + 2] != 0) and (symbol_at_tile == self.board_state[i, j + 2]):
+							scores += symbol_at_tile
+						
+					elif (j-2 >=0) and (self.board_state[i, j - 1] != 0) and (symbol_at_tile == self.board_state[i, j - 1]): #check y - 1 direction
+						if (self.board_state[i,j - 2] != 0) and (symbol_at_tile == self.board_state[i, j - 2]):
+							scores += symbol_at_tile
+					
+					elif (i - 2 >= 0 and j + 2 < cols) and (self.board_state[i - 1, j + 1] != 0) and (symbol_at_tile == self.board_state[i - 1, j + 1]):#Up left
+						if (self.board_state[i - 2, j + 2] != 0) and (symbol_at_tile == self.board_state[i - 2, j + 2]):
+							scores += symbol_at_tile
+
+					elif (i + 2 < rows and j + 2 < cols) and (self.board_state[i + 1, j + 1] != 0) and (symbol_at_tile == self.board_state[i + 1, j + 1]):#Up right
+						if (self.board_state[i + 2, j + 2] != 0) and (symbol_at_tile == self.board_state[i + 2, j + 2]):
+							scores += symbol_at_tile
+
+					elif (i - 2 >= 0 and j - 2 >= 0) and (self.board_state[i - 1, j - 1] != 0) and (symbol_at_tile == self.board_state[i - 1, j - 1]):#Down left
+						if (self.board_state[i - 2, j - 2] != 0) and (symbol_at_tile == self.board_state[i - 2, j - 2]):
+							scores += symbol_at_tile
+
+					elif (i + 2 < rows and j - 2 >= 0) and (self.board_state[i + 1, j - 1] != 0) and (symbol_at_tile == self.board_state[i + 1, j - 1]):#Down right 
+						if (self.board_state[i + 2, j - 2] != 0) and (symbol_at_tile == self.board_state[i + 2, j - 2]):
+							scores += symbol_at_tile
+
+		return scores				
+						
+		
 		for row in self.board_state:
 			if abs(sum(row)) == check_point:
 				scores += sum(row)
 		return scores if scores is not None else 0
 		
-	    
 
 	def get_negamax_scores(self, terminal):
 		"""
