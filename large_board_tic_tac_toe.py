@@ -1,195 +1,153 @@
-"""
-PLEASE READ THE COMMENTS BELOW AND THE HOMEWORK DESCRIPTION VERY CAREFULLY BEFORE YOU START CODING
-
- The file where you will need to create the GUI which should include (i) drawing the grid, (ii) call your Minimax/Negamax functions
- at each step of the game, (iii) allowing the controls on the GUI to be managed (e.g., setting board size, using 
-                                                                                 Minimax or Negamax, and other options)
- In the example below, grid creation is supported using pygame which you can use. You are free to use any other 
- library to create better looking GUI with more control. In the __init__ function, GRID_SIZE (Line number 36) is the variable that
- sets the size of the grid. Once you have the Minimax code written in multiAgents.py file, it is recommended to test
- your algorithm (with alpha-beta pruning) on a 3x3 GRID_SIZE to see if the computer always tries for a draw and does 
- not let you win the game. Here is a video tutorial for using pygame to create grids http://youtu.be/mdTeqiWyFnc
- 
- 
- PLEASE CAREFULLY SEE THE PORTIONS OF THE CODE/FUNCTIONS WHERE IT INDICATES "YOUR CODE BELOW" TO COMPLETE THE SECTIONS
- 
-"""
 import pygame
 import numpy as np
+import tkinter as tk
+from tkinter import ttk
 from GameStatus_5120 import GameStatus
 from multiAgents import minimax, negamax
 import sys, random
 
-mode = "player_vs_ai" # default mode for playing the game (player vs AI)
+mode = "player_vs_ai"
+
+class TicTacToeGUI:
+    def __init__(self, master, game):
+        self.master = master
+        self.game = game
+        master.title("Tic Tac Toe Settings")
+        master.configure(bg="#2C3E50")
+        
+        style = ttk.Style()
+        style.configure("TButton", font=("Arial", 12), padding=5)
+        style.configure("TLabel", background="#2C3E50", foreground="white", font=("Arial", 12))
+        
+        self.frame = ttk.Frame(master)
+        self.frame.pack(pady=10)
+        
+        ttk.Label(self.frame, text="Board Size:").grid(row=0, column=0, padx=10, pady=5)
+        self.board_size_var = tk.IntVar(value=3)
+        board_size_menu = ttk.Combobox(self.frame, textvariable=self.board_size_var, values=[3, 4, 5], state="readonly")
+        board_size_menu.grid(row=0, column=1, padx=10, pady=5)
+        
+        ttk.Label(self.frame, text="Symbol:").grid(row=1, column=0, padx=10, pady=5)
+        self.symbol_var = tk.StringVar(value="X")
+        symbol_menu = ttk.Combobox(self.frame, textvariable=self.symbol_var, values=["X", "O"], state="readonly")
+        symbol_menu.grid(row=1, column=1, padx=10, pady=5)
+        
+        ttk.Label(self.frame, text="Game Mode:").grid(row=2, column=0, padx=10, pady=5)
+        self.mode_var = tk.StringVar(value="player_vs_ai")
+        mode_menu = ttk.Combobox(self.frame, textvariable=self.mode_var, values=["human_vs_human", "player_vs_ai"], state="readonly")
+        mode_menu.grid(row=2, column=1, padx=10, pady=5)
+        
+        start_button = ttk.Button(self.frame, text="Start Game", command=self.start_game)
+        start_button.grid(row=3, column=0, columnspan=2, pady=10)
+        
+    def start_game(self):
+        global mode
+        mode = self.mode_var.get()
+        self.game.update_settings(self.board_size_var.get(), self.symbol_var.get())
+        self.master.destroy()
+        self.game.run_game()
 
 class RandomBoardTicTacToe:
-    def __init__(self, size = (600, 600)):
-
-        self.size = self.width, self.height = size
-        # Define some colors
-        self.BLACK = (0, 0, 0)
-        self.WHITE = (255, 255, 255)
-        self.GREEN = (0, 255, 0)
-        self.RED = (255, 0, 0)
-
-        # Grid Size
-        self.GRID_SIZE = 3
-        self. OFFSET = 5
-
-        self.CIRCLE_COLOR = (140, 146, 172)
-        self.CROSS_COLOR = (140, 146, 172)
-
-        # This sets the WIDTH and HEIGHT of each grid location
-        self.WIDTH = self.size[0]/self.GRID_SIZE - self.OFFSET
-        self.HEIGHT = self.size[1]/self.GRID_SIZE - self.OFFSET
-
-        # This sets the margin between each cell
-        self.MARGIN = 5
-
-        # Initialize pygame
+    def __init__(self, size=(600, 700)):
         pygame.init()
+        self.size = self.width, self.height = size
+        self.GRID_SIZE = 3
+        self.MARGIN = 5
+        self.OFFSET = 5
+        self.WIDTH = self.size[0] / self.GRID_SIZE - self.OFFSET
+        self.HEIGHT = (self.size[1] - 100) / self.GRID_SIZE - self.OFFSET
+        self.player_symbol = "X"
+        self.screen = pygame.display.set_mode(self.size)
         self.game_reset()
 
+    def update_settings(self, grid_size, player_symbol):
+        self.GRID_SIZE = grid_size
+        self.player_symbol = player_symbol
+        self.WIDTH = self.size[0] / self.GRID_SIZE - self.OFFSET
+        self.HEIGHT = (self.size[1] - 100) / self.GRID_SIZE - self.OFFSET
+        self.game_reset()
+
+    def game_reset(self):
+        self.board = np.zeros((self.GRID_SIZE, self.GRID_SIZE), dtype=int)
+        self.game_state = GameStatus(self.board, turn_O=(self.player_symbol == "O"))
+        self.draw_game()
+
     def draw_game(self):
-        # Create a 2 dimensional array using the column and row variables
-        pygame.init()
-        self.screen = pygame.display.set_mode(self.size)
-        pygame.display.set_caption("Tic Tac Toe Random Grid")
-        self.screen.fill(self.BLACK)
-        # Draw the grid
-        
+        self.screen.fill((44, 62, 80))
         for row in range(self.GRID_SIZE):
             for col in range(self.GRID_SIZE):
-                rect = pygame.Rect(col * (self.WIDTH + self.MARGIN), row * (self.HEIGHT + self.MARGIN), self.WIDTH, self.HEIGHT)
-                pygame.draw.rect(self.screen, self.WHITE, rect, 2)
-        
+                rect = pygame.Rect(col * (self.WIDTH + self.MARGIN), row * (self.HEIGHT + self.MARGIN) + 100, self.WIDTH, self.HEIGHT)
+                pygame.draw.rect(self.screen, (236, 240, 241), rect, 2)
         pygame.display.update()
-
-    def change_turn(self):
-
-        if(self.game_state.turn_O):
-            pygame.display.set_caption("Tic Tac Toe - O's turn")
-        else:
-            pygame.display.set_caption("Tic Tac Toe - X's turn")
-
-
-    def draw_circle(self, x, y):
-        center = (int(x *(self.WIDTH + self.MARGIN) + self.WIDTH //2), int(y * (self.WIDTH + self.MARGIN) + self.WIDTH//2))
-        pygame.draw.circle(self.screen, self.CIRCLE_COLOR, center, int(self.WIDTH // 3) , 3)
-        pygame.display.update()
-        
-
-    def draw_cross(self, x, y):
-        start_pos1 = (x * (self.WIDTH + self.MARGIN) + self.MARGIN, y * (self.HEIGHT + self.MARGIN) + self.MARGIN)
-        end_pos1 = ((x + 1) * (self.WIDTH + self.MARGIN) - self.MARGIN, (y + 1) * (self.HEIGHT + self.MARGIN) - self.MARGIN)
-        pygame.draw.line(self.screen, self.CROSS_COLOR, start_pos1, end_pos1, 3)
-        start_pos2 = ((x+1) * (self.WIDTH + self.MARGIN) - self.MARGIN, y * (self.HEIGHT + self.MARGIN) + self.MARGIN)
-        end_pos2 = (x * (self.WIDTH + self.MARGIN) + self.MARGIN, (y + 1) * (self.HEIGHT + self.MARGIN) - self.MARGIN)
-        pygame.draw.line(self.screen, self.CROSS_COLOR, start_pos2, end_pos2, 3)
-        pygame.display.update()
-        
-
-    def is_game_over(self):
-
-        """
-        YOUR CODE HERE TO SEE IF THE GAME HAS TERMINATED AFTER MAKING A MOVE. YOU SHOULD USE THE IS_TERMINAL()
-        FUNCTION FROM GAMESTATUS_5120.PY FILE (YOU WILL FIRST NEED TO COMPLETE IS_TERMINAL() FUNCTION)
-        
-        YOUR RETURN VALUE SHOULD BE TRUE OR FALSE TO BE USED IN OTHER PARTS OF THE GAME
-        """
-        return self.game_state.is_terminal()
-    
 
     def move(self, move):
-        self.game_state = self.game_state.get_new_state(move)
-
+        if move is None:
+            return  # Prevents errors when move is None
+        x, y = move
+        if not (0 <= x < self.GRID_SIZE and 0 <= y < self.GRID_SIZE):  
+            return  # Prevents index errors
+        if self.board[y, x] != 0:
+            return  # Prevents overwriting moves
+        self.board[y, x] = 1 if self.game_state.turn_O else -1
+        new_state = self.game_state.get_new_state(move)
+        if new_state is None:
+            return  # Prevents breaking the game if new_state is None
+        self.game_state = new_state
+        if self.game_state.turn_O:
+            self.draw_circle(x, y)
+        else:
+            self.draw_cross(x, y)
+        self.check_game_over()
+        pygame.display.update()
+        self.change_turn()
+        if mode == "player_vs_ai" and not self.game_state.is_terminal():
+            self.play_ai()
+    def change_turn(self):
+        self.game_state.turn_O = not self.game_state.turn_O
+        turn_text = "O's Turn" if self.game_state.turn_O else "X's Turn"
+        pygame.display.set_caption(f"Tic Tac Toe - {turn_text}")
 
     def play_ai(self):
         if mode == "player_vs_ai":
-            _, move = minimax(self.game_state) if self.game_state.turn_O else negamax(self.game_state)
-            if move:
-                self.move(move)
-                self.draw_circle(*move) if self.game_state.turn_O else self.draw_cross(*move)
-            self.change_turn()
-            pygame.display.update()
-        """
-        YOUR CODE HERE TO CALL MINIMAX OR NEGAMAX DEPENDEING ON WHICH ALGORITHM SELECTED FROM THE GUI
-        ONCE THE ALGORITHM RETURNS THE BEST MOVE TO BE SELECTED, YOU SHOULD DRAW THE NOUGHT (OR CIRCLE DEPENDING
-        ON WHICH SYMBOL YOU SELECTED FOR THE AI PLAYER)
-        
-        THE RETURN VALUES FROM YOUR MINIMAX/NEGAMAX ALGORITHM SHOULD BE THE SCORE, MOVE WHERE SCORE IS AN INTEGER
-        NUMBER AND MOVE IS AN X,Y LOCATION RETURNED BY THE AGENT
-        """
-        
+            result = minimax(self.game_state, 3, True) if self.game_state.turn_O else negamax(self.game_state, 3, 1)
+        if result is not None and result[1] is not None:
+            move = result[1]
+            self.move(move)
+            self.draw_circle(*move) if self.game_state.turn_O else self.draw_cross(*move)
         self.change_turn()
         pygame.display.update()
-        terminal = self.game_state.is_terminal()
-        """ USE self.game_state.get_scores(terminal) HERE TO COMPUTE AND DISPLAY THE FINAL SCORES """
 
+    def draw_circle(self, x, y):
+        center = (int(x * (self.WIDTH + self.MARGIN) + self.WIDTH // 2), int(y * (self.HEIGHT + self.MARGIN) + 100 + self.WIDTH // 2))
+        pygame.draw.circle(self.screen, (140, 146, 172), center, int(self.WIDTH // 3), 3)
 
+    def draw_cross(self, x, y):
+        start_pos1 = (x * (self.WIDTH + self.MARGIN) + self.MARGIN, y * (self.HEIGHT + self.MARGIN) + 100 + self.MARGIN)
+        end_pos1 = ((x + 1) * (self.WIDTH + self.MARGIN) - self.MARGIN, (y + 1) * (self.HEIGHT + self.MARGIN) + 100 - self.MARGIN)
+        pygame.draw.line(self.screen, (140, 146, 172), start_pos1, end_pos1, 3)
+        start_pos2 = ((x+1) * (self.WIDTH + self.MARGIN) - self.MARGIN, y * (self.HEIGHT + self.MARGIN) + 100 + self.MARGIN)
+        end_pos2 = (x * (self.WIDTH + self.MARGIN) + self.MARGIN, (y + 1) * (self.HEIGHT + self.MARGIN) + 100 - self.MARGIN)
+        pygame.draw.line(self.screen, (140, 146, 172), start_pos2, end_pos2, 3)
 
-    def game_reset(self):
-        self.game_state = GameStatus(self.GRID_SIZE, turn_O=True)
-        self.draw_game()
-        """
-        YOUR CODE HERE TO RESET THE BOARD TO VALUE 0 FOR ALL CELLS AND CREATE A NEW GAME STATE WITH NEWLY INITIALIZED
-        BOARD STATE
-        """
-        
-        pygame.display.update()
+    def check_game_over(self):
+        if self.game_state.is_terminal():
+            print("Game Over! Winner:", self.game_state.winner)
 
-    def play_game(self, mode = "player_vs_ai"):
-        done = False
-
-        clock = pygame.time.Clock()
-
-
-        while not done:
-            for event in pygame.event.get():  # User did something
-                """
-                YOUR CODE HERE TO CHECK IF THE USER CLICKED ON A GRID ITEM. EXIT THE GAME IF THE USER CLICKED EXIT
-                """
-                
-                """
-                YOUR CODE HERE TO HANDLE THE SITUATION IF THE GAME IS OVER. IF THE GAME IS OVER THEN DISPLAY THE SCORE,
-                THE WINNER, AND POSSIBLY WAIT FOR THE USER TO CLEAR THE BOARD AND START THE GAME AGAIN (OR CLICK EXIT)
-                """
-                    
-                """
-                YOUR CODE HERE TO NOW CHECK WHAT TO DO IF THE GAME IS NOT OVER AND THE USER SELECTED A NON EMPTY CELL
-                IF CLICKED A NON EMPTY CELL, THEN GET THE X,Y POSITION, SET ITS VALUE TO 1 (SELECTED BY HUMAN PLAYER),
-                DRAW CROSS (OR NOUGHT DEPENDING ON WHICH SYMBOL YOU CHOSE FOR YOURSELF FROM THE gui) AND CALL YOUR 
-                PLAY_AI FUNCTION TO LET THE AGENT PLAY AGAINST YOU
-                """
+    def run_game(self):
+        running = True
+        while running:
+            for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN and not self.is_game_over():
-                    x, y = event.pos[0] // (self.WIDTH + self.MARGIN), event.pos[1] // (self.HEIGHT + self.MARGIN)
-                    if self.game_state.board[y,x] == 0:
-                        self.move((y,x))
-                        self.draw_cross(x,y)
-                        if not self.is_game_over():
-                            self.play_ai()
-                # if event.type == pygame.MOUSEBUTTONUP:
-                    # Get the position
-                    
-                    # Change the x/y screen coordinates to grid coordinates
-                    
-                    # Check if the game is human vs human or human vs AI player from the GUI. 
-                    # If it is human vs human then your opponent should have the value of the selected cell set to -1
-                    # Then draw the symbol for your opponent in the selected cell
-                    # Within this code portion, continue checking if the game has ended by using is_terminal function
-                    
-            # Update the screen with what was drawn.
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = int(event.pos[0] // (self.WIDTH + self.MARGIN)), int((event.pos[1] - 100) // (self.HEIGHT + self.MARGIN))
+                    if 0 <= x < self.GRID_SIZE and 0 <= y < self.GRID_SIZE:
+                        self.move((x, y))
             pygame.display.update()
-
         pygame.quit()
 
-tictactoegame = RandomBoardTicTacToe()
-tictactoegame.play_game()
-"""
-YOUR CODE HERE TO SELECT THE OPTIONS VIA THE GUI CALLED FROM THE ABOVE LINE
-AFTER THE ABOVE LINE, THE USER SHOULD SELECT THE OPTIONS AND START THE GAME. 
-YOUR FUNCTION PLAY_GAME SHOULD THEN BE CALLED WITH THE RIGHT OPTIONS AS SOON
-AS THE USER STARTS THE GAME
-"""
+if __name__ == "__main__":
+    game = RandomBoardTicTacToe()
+    root = tk.Tk()
+    gui = TicTacToeGUI(root, game)
+    root.mainloop()
