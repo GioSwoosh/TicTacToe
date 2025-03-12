@@ -49,7 +49,6 @@ class TicTacToeGUI:
 
 class RandomBoardTicTacToe:
     def __init__(self, size=(600, 700)):
-        pygame.init()
         self.size = self.width, self.height = size
         self.GRID_SIZE = 3
         self.MARGIN = 5
@@ -57,15 +56,12 @@ class RandomBoardTicTacToe:
         self.WIDTH = self.size[0] / self.GRID_SIZE - self.OFFSET
         self.HEIGHT = (self.size[1] - 100) / self.GRID_SIZE - self.OFFSET
         self.player_symbol = "X"
-        self.screen = pygame.display.set_mode(self.size)
-        self.game_reset()
 
     def update_settings(self, grid_size, player_symbol):
         self.GRID_SIZE = grid_size
         self.player_symbol = player_symbol
         self.WIDTH = self.size[0] / self.GRID_SIZE - self.OFFSET
         self.HEIGHT = (self.size[1] - 100) / self.GRID_SIZE - self.OFFSET
-        self.game_reset()
 
     def game_reset(self):
         self.board = np.zeros((self.GRID_SIZE, self.GRID_SIZE), dtype=int)
@@ -88,12 +84,13 @@ class RandomBoardTicTacToe:
             return  # Prevents index errors
         if self.board[y, x] != 0:
             return  # Prevents overwriting moves
+        current_turn = self.game_state.turn_O
         self.board[y, x] = 1 if self.game_state.turn_O else -1
         new_state = self.game_state.get_new_state(move)
         if new_state is None:
             return  # Prevents breaking the game if new_state is None
         self.game_state = new_state
-        if self.game_state.turn_O:
+        if current_turn:
             self.draw_circle(x, y)
         else:
             self.draw_cross(x, y)
@@ -101,9 +98,10 @@ class RandomBoardTicTacToe:
         pygame.display.update()
         self.change_turn()
         if mode == "player_vs_ai" and not self.game_state.is_terminal():
-            self.play_ai()
+            if (self.player_symbol == "X" and self.game_state.turn_O) or \
+               (self.player_symbol == "O" and not self.game_state.turn_O):
+                self.play_ai()
     def change_turn(self):
-        self.game_state.turn_O = not self.game_state.turn_O
         turn_text = "O's Turn" if self.game_state.turn_O else "X's Turn"
         pygame.display.set_caption(f"Tic Tac Toe - {turn_text}")
 
@@ -113,8 +111,6 @@ class RandomBoardTicTacToe:
         if result is not None and result[1] is not None:
             move = result[1]
             self.move(move)
-            self.draw_circle(*move) if self.game_state.turn_O else self.draw_cross(*move)
-        self.change_turn()
         pygame.display.update()
 
     def draw_circle(self, x, y):
@@ -134,6 +130,9 @@ class RandomBoardTicTacToe:
             print("Game Over! Winner:", self.game_state.winner)
 
     def run_game(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode(self.size)
+        self.game_reset()
         running = True
         while running:
             for event in pygame.event.get():
