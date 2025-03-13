@@ -101,6 +101,7 @@ class RandomBoardTicTacToe:
             print("Square already occupied!")
             return
 
+        current_turn = self.game_state.turn_O
         # Get new state before modifying the board manually
         new_state = self.game_state.get_new_state(move)
         if new_state is None:
@@ -111,7 +112,7 @@ class RandomBoardTicTacToe:
         self.board = self.game_state.board_state.copy()  # Sync board with game state
 
         # Draw the move based on the current turn
-        if self.game_state.turn_O:
+        if current_turn:
             self.draw_circle(x, y)
         else:
             self.draw_cross(x, y)
@@ -122,7 +123,7 @@ class RandomBoardTicTacToe:
         
         # Switch turns and let AI play if it's AI's turn
         self.change_turn()
-        if mode == "player_vs_ai" and not self.game_state.turn_O:  
+        if mode == "player_vs_ai" and self.game_state.turn_O == (self.ai_symbol == "O"):  
             self.play_ai()  # Let AI take its turn after player moves
         print(f"Turn O: {self.game_state.turn_O}, Player Symbol: {self.player_symbol}, AI Symbol: {self.ai_symbol}")
 
@@ -134,12 +135,12 @@ class RandomBoardTicTacToe:
         pygame.display.set_caption(f"Tic Tac Toe - {turn_text}")
 
     def play_ai(self):
-        if mode == "player_vs_ai":
+        if mode == "player_vs_ai" and self.game_state.turn_O == (self.ai_symbol == "O"):
             result = minimax(self.game_state, 3, True) if self.game_state.turn_O else negamax(self.game_state, 3, 1)
-        if result is not None and result[1] is not None:
-            move = result[1]
-            self.move(move)
-        pygame.display.update()
+            if result is not None and result[1] is not None:
+                move = result[1]
+                self.move(move)
+            pygame.display.update()
 
     def draw_circle(self, x, y):
         center = (int(x * (self.WIDTH + self.MARGIN) + self.WIDTH // 2), int(y * (self.HEIGHT + self.MARGIN) + 100 + self.WIDTH // 2))
