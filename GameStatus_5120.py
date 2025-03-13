@@ -14,18 +14,23 @@ class GameStatus:
 
 
 	def is_terminal(self):
-		if self.get_moves():
-			return False
 		final_score = self.get_scores(True)
 		if final_score is None:
 			final_score = 0
+
 		if final_score > 0:
 			self.winner = "Human"
+			return True
 		elif final_score < 0:
 			self.winner = "AI"
-		else:
+			return True
+
+		if not self.get_moves():  # Only declare a draw if no moves are left
 			self.winner = "Draw"
-		return True	
+			return True  
+
+		return False
+
 
 		
 
@@ -98,19 +103,17 @@ class GameStatus:
 	def get_moves(self):
 		moves = []
 		rows, cols = self.board_state.shape
-		for i in range(rows):
-			for j in range(cols):
-				if self.board_state[i,j] == 0:
-					moves.append((i,j))
-		
-		
+		for y in range(rows):
+			for x in range(cols):
+				if self.board_state[y, x] == 0:
+					moves.append((x, y))
 		return moves
 
-
 	def get_new_state(self, move):
-		x, y = move
-		if self.board_state[x,y] != 0:
+		x, y = move  # x = column, y = row
+		if self.board_state[y, x] != 0:
 			return None
 		new_board_state = self.board_state.copy()
-		new_board_state[x,y] = 1 if self.turn_O else -1
+		new_board_state[y, x] = 1 if self.turn_O else -1
 		return GameStatus(new_board_state, not self.turn_O)
+
