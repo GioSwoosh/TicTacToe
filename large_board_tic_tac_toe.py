@@ -55,18 +55,28 @@ class RandomBoardTicTacToe:
         self.OFFSET = 5
         self.WIDTH = self.size[0] / self.GRID_SIZE - self.OFFSET
         self.HEIGHT = (self.size[1] - 100) / self.GRID_SIZE - self.OFFSET
-        self.player_symbol = "X"
+        self.player_symbol = None
+        self.ai_symbol = None
 
     def update_settings(self, grid_size, player_symbol):
         self.GRID_SIZE = grid_size
         self.player_symbol = player_symbol
+        self.ai_symbol = "O" if self.player_symbol == "X" else "X"  # AI takes the other symbol
         self.WIDTH = self.size[0] / self.GRID_SIZE - self.OFFSET
         self.HEIGHT = (self.size[1] - 100) / self.GRID_SIZE - self.OFFSET
+        print(f"Player Symbol: {self.player_symbol}, AI Symbol : {self.ai_symbol}")
+
 
     def game_reset(self):
+        print("Resetting game...")  
         self.board = np.zeros((self.GRID_SIZE, self.GRID_SIZE), dtype=int)
         self.game_state = GameStatus(self.board, turn_O=(self.player_symbol == "O"))
         self.draw_game()
+
+        if mode == "player_vs_ai" and self.player_symbol == "O":  # If player is "O", AI starts
+            self.play_ai()
+
+
 
     def draw_game(self):
         self.screen.fill((44, 62, 80))
@@ -78,29 +88,47 @@ class RandomBoardTicTacToe:
 
     def move(self, move):
         if move is None:
-            return  # Prevents errors when move is None
+            return
+
         x, y = move
-        if not (0 <= x < self.GRID_SIZE and 0 <= y < self.GRID_SIZE):  
-            return  # Prevents index errors
+        print(f"Attempting move at ({x}, {y})")
+        print("Current Board Before Move:\n", self.board)
+
+        if not (0 <= x < self.GRID_SIZE and 0 <= y < self.GRID_SIZE):
+            print("Move out of bounds!")
+            return  
         if self.board[y, x] != 0:
-            return  # Prevents overwriting moves
-        current_turn = self.game_state.turn_O
-        self.board[y, x] = 1 if self.game_state.turn_O else -1
+            print("Square already occupied!")
+            return
+
+        # Get new state before modifying the board manually
         new_state = self.game_state.get_new_state(move)
         if new_state is None:
-            return  # Prevents breaking the game if new_state is None
-        self.game_state = new_state
-        if current_turn:
+            print("Invalid new state!")
+            return
+
+        self.game_state = new_state  # Update game state
+        self.board = self.game_state.board_state.copy()  # Sync board with game state
+
+        # Draw the move based on the current turn
+        if self.game_state.turn_O:
             self.draw_circle(x, y)
         else:
             self.draw_cross(x, y)
+
+        print("Updated Board:\n", self.board)
         self.check_game_over()
         pygame.display.update()
+        
+        # Switch turns and let AI play if it's AI's turn
         self.change_turn()
-        if mode == "player_vs_ai" and not self.game_state.is_terminal():
-            if (self.player_symbol == "X" and self.game_state.turn_O) or \
-               (self.player_symbol == "O" and not self.game_state.turn_O):
-                self.play_ai()
+        if mode == "player_vs_ai" and not self.game_state.turn_O:  
+            self.play_ai()  # Let AI take its turn after player moves
+        print(f"Turn O: {self.game_state.turn_O}, Player Symbol: {self.player_symbol}, AI Symbol: {self.ai_symbol}")
+
+
+
+
     def change_turn(self):
         turn_text = "O's Turn" if self.game_state.turn_O else "X's Turn"
         pygame.display.set_caption(f"Tic Tac Toe - {turn_text}")
@@ -128,6 +156,12 @@ class RandomBoardTicTacToe:
     def check_game_over(self):
         if self.game_state.is_terminal():
             print("Game Over! Winner:", self.game_state.winner)
+            pygame.display.set_caption(f"Game Over - Winner: {self.game_state.winner}")
+
+            pygame.time.delay(2000)  # Small delay before closing
+            pygame.quit()
+            sys.exit()
+
 
     def run_game(self):
         pygame.init()
