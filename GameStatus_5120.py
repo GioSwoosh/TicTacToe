@@ -4,12 +4,12 @@
 class GameStatus:
 
 
-	def __init__(self, board_state, turn_O):
+	def __init__(self, board_state, turn_O, human_symbol):
 
 		self.board_state = board_state
 		self.turn_O = turn_O
+		self.human_symbol = human_symbol
 		self.oldScores = 0
-
 		self.winner = ""
 
 
@@ -19,10 +19,10 @@ class GameStatus:
 			final_score = 0
 
 		if final_score > 0:
-			self.winner = "Human"
+			self.winner = "Human" if self.human_symbol == "O" else "AI"
 			return True
 		elif final_score < 0:
-			self.winner = "AI"
+			self.winner = "Human" if self.human_symbol == "X" else "AI"
 			return True
 
 		if not self.get_moves():  # Only declare a draw if no moves are left
@@ -115,5 +115,5 @@ class GameStatus:
 			return None
 		new_board_state = self.board_state.copy()
 		new_board_state[y, x] = 1 if self.turn_O else -1
-		return GameStatus(new_board_state, not self.turn_O)
+		return GameStatus(new_board_state, not self.turn_O, self.human_symbol)
 

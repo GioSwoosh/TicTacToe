@@ -70,7 +70,7 @@ class RandomBoardTicTacToe:
     def game_reset(self):
         print("Resetting game...")  
         self.board = np.zeros((self.GRID_SIZE, self.GRID_SIZE), dtype=int)
-        self.game_state = GameStatus(self.board, turn_O=(self.player_symbol == "O"))
+        self.game_state = GameStatus(self.board, turn_O=(self.player_symbol == "O"), human_symbol=self.player_symbol)
         self.draw_game()
 
         if mode == "player_vs_ai" and self.player_symbol == "O":  # If player is "O", AI starts
@@ -158,7 +158,7 @@ class RandomBoardTicTacToe:
         if self.game_state.is_terminal():
             print("Game Over! Winner:", self.game_state.winner)
             pygame.display.set_caption(f"Game Over - Winner: {self.game_state.winner}")
-
+            pygame.display.update()
             pygame.time.delay(2000)  # Small delay before closing
             pygame.quit()
             sys.exit()
